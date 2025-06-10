@@ -1,15 +1,13 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Upload, Settings, Moon, Sun, MessageSquare, Bot, User, FileText, Sparkles } from 'lucide-react';
+import { Send, Upload, MessageSquare, Bot, User, FileText, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useToast } from '@/hooks/use-toast';
@@ -26,17 +24,19 @@ interface ChatSession {
   id: string;
   title: string;
   messages: Message[];
-  systemPrompt: string;
+  system_prompt: string;
   model: string;
   document?: {
     name: string;
-    content: string;
+    uploaded_at: string;
+    size: number;
   };
-  createdAt: Date;
+  created_at: Date;
 }
 
+const API_BASE_URL = 'http://localhost:8000/api';
+
 const Index = () => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedModel, setSelectedModel] = useState('gemini');
   const [currentSession, setCurrentSession] = useState<ChatSession | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
@@ -51,88 +51,80 @@ const Index = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
-  // Load data from localStorage on mount
+  // Load sessions from backend on mount
   useEffect(() => {
-    const savedSessions = localStorage.getItem('chatSessions');
-    const savedTheme = localStorage.getItem('isDarkMode');
-    const savedModel = localStorage.getItem('selectedModel');
-    
-    if (savedSessions) {
-      const parsedSessions = JSON.parse(savedSessions).map((session: any) => ({
-        ...session,
-        createdAt: new Date(session.createdAt),
-        messages: session.messages.map((msg: any) => ({
-          ...msg,
-          timestamp: new Date(msg.timestamp)
-        }))
-      }));
-      setSessions(parsedSessions);
-    }
-    
-    if (savedTheme) {
-      setIsDarkMode(JSON.parse(savedTheme));
-    }
-    
-    if (savedModel) {
-      setSelectedModel(savedModel);
-    }
+    loadSessions();
   }, []);
-
-  // Save to localStorage whenever data changes
-  useEffect(() => {
-    localStorage.setItem('chatSessions', JSON.stringify(sessions));
-  }, [sessions]);
-
-  useEffect(() => {
-    localStorage.setItem('isDarkMode', JSON.stringify(isDarkMode));
-  }, [isDarkMode]);
-
-  useEffect(() => {
-    localStorage.setItem('selectedModel', selectedModel);
-  }, [selectedModel]);
-
-  // Apply theme to document
-  useEffect(() => {
-    if (isDarkMode) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, [isDarkMode]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [currentSession?.messages]);
 
-  const createNewSession = () => {
+  const loadSessions = async () => {
+    try {
+      const response = await fetch(`${API_BASE_URL}/sessions`);
+      if (response.ok) {
+        const sessionsData = await response.json();
+        const parsedSessions = sessionsData.map((session: any) => ({
+          ...session,
+          created_at: new Date(session.created_at),
+          messages: session.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp)
+          }))
+        }));
+        setSessions(parsedSessions);
+      }
+    } catch (error) {
+      console.error('Failed to load sessions:', error);
+    }
+  };
+
+  const createNewSession = async () => {
     if (!systemPrompt.trim()) {
       setIsPromptModalOpen(true);
       return;
     }
 
-    const newSession: ChatSession = {
-      id: Date.now().toString(),
-      title: `Chat ${sessions.length + 1}`,
-      messages: [],
-      systemPrompt,
-      model: selectedModel,
-      document: uploadedDocument ? {
-        name: uploadedDocument.name,
-        content: '' // In real implementation, this would be the processed content
-      } : undefined,
-      createdAt: new Date()
-    };
+    try {
+      const response = await fetch(`${API_BASE_URL}/sessions`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          title: `Chat ${sessions.length + 1}`,
+          system_prompt: systemPrompt,
+          model: selectedModel
+        })
+      });
 
-    setSessions(prev => [newSession, ...prev]);
-    setCurrentSession(newSession);
-    setIsPromptModalOpen(false);
-    setUploadedDocument(null);
-    
-    toast({
-      title: "New chat session created",
-      description: `Using ${selectedModel.toUpperCase()} model`,
-    });
+      if (response.ok) {
+        const newSession = await response.json();
+        const sessionWithDates = {
+          ...newSession,
+          created_at: new Date(newSession.created_at),
+          messages: []
+        };
+        
+        setSessions(prev => [sessionWithDates, ...prev]);
+        setCurrentSession(sessionWithDates);
+        setIsPromptModalOpen(false);
+        setUploadedDocument(null);
+        
+        toast({
+          title: "New chat session created",
+          description: `Using ${selectedModel.toUpperCase()} model`,
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create new session",
+        variant: "destructive"
+      });
+    }
   };
 
   const sendMessage = async () => {
@@ -145,7 +137,7 @@ const Index = () => {
       timestamp: new Date()
     };
 
-    // Update current session with user message
+    // Update UI immediately with user message
     const updatedSession = {
       ...currentSession,
       messages: [...currentSession.messages, userMessage]
@@ -156,43 +148,52 @@ const Index = () => {
     setInputMessage('');
     setIsLoading(true);
 
-    // Simulate AI response (in real implementation, this would call your FastAPI backend)
-    setTimeout(() => {
-      const botMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: generateAIResponse(inputMessage, currentSession.systemPrompt, selectedModel),
-        type: 'bot',
-        timestamp: new Date(),
-        model: selectedModel
-      };
+    try {
+      const response = await fetch(`${API_BASE_URL}/chat/message`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          content: inputMessage,
+          model: selectedModel,
+          system_prompt: currentSession.system_prompt,
+          session_id: currentSession.id,
+          document_context: uploadedDocument ? 'true' : null
+        })
+      });
 
-      const finalSession = {
-        ...updatedSession,
-        messages: [...updatedSession.messages, botMessage]
-      };
+      if (response.ok) {
+        const botMessage = await response.json();
+        const botMessageWithDate = {
+          ...botMessage,
+          timestamp: new Date(botMessage.timestamp)
+        };
 
-      setCurrentSession(finalSession);
-      setSessions(prev => prev.map(s => s.id === currentSession.id ? finalSession : s));
+        const finalSession = {
+          ...updatedSession,
+          messages: [...updatedSession.messages, botMessageWithDate]
+        };
+
+        setCurrentSession(finalSession);
+        setSessions(prev => prev.map(s => s.id === currentSession.id ? finalSession : s));
+      } else {
+        throw new Error('Failed to send message');
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to send message",
+        variant: "destructive"
+      });
+    } finally {
       setIsLoading(false);
-    }, 1000 + Math.random() * 2000);
+    }
   };
 
-  const generateAIResponse = (userMessage: string, systemPrompt: string, model: string): string => {
-    // This is a placeholder for demonstration. In real implementation, 
-    // this would make an API call to your FastAPI backend
-    const responses = [
-      `Based on your system prompt "${systemPrompt}", I understand you want me to respond in a specific way. Regarding "${userMessage}", here's my ${model.toUpperCase()}-powered response...`,
-      `Using ${model.toUpperCase()} model with the context from your system prompt, I can help you with that question about "${userMessage}".`,
-      `Following your system instructions "${systemPrompt}", I'll address your query about "${userMessage}" using advanced ${model.toUpperCase()} capabilities.`
-    ];
-    
-    return responses[Math.floor(Math.random() * responses.length)] + 
-           ` This response demonstrates the ${model} model's capabilities in understanding context and providing relevant information.`;
-  };
-
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
-    if (file) {
+    if (file && currentSession) {
       const allowedTypes = ['application/pdf', 'text/plain', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
       if (!allowedTypes.includes(file.type)) {
         toast({
@@ -203,11 +204,32 @@ const Index = () => {
         return;
       }
       
-      setUploadedDocument(file);
-      toast({
-        title: "Document uploaded",
-        description: `${file.name} is ready for analysis`,
-      });
+      try {
+        const formData = new FormData();
+        formData.append('file', file);
+        
+        const response = await fetch(`${API_BASE_URL}/documents/upload?session_id=${currentSession.id}`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          setUploadedDocument(file);
+          toast({
+            title: "Document uploaded",
+            description: result.message,
+          });
+        } else {
+          throw new Error('Upload failed');
+        }
+      } catch (error) {
+        toast({
+          title: "Upload failed",
+          description: "Failed to upload document",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -220,8 +242,8 @@ const Index = () => {
   };
 
   return (
-    <div className={`min-h-screen flex ${isDarkMode ? 'dark' : ''}`}>
-      <div className="flex w-full bg-background text-foreground">
+    <div className="min-h-screen flex bg-background text-foreground">
+      <div className="flex w-full">
         {/* Sidebar */}
         <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border bg-card`}>
           <div className="p-4 border-b border-border">
@@ -230,13 +252,6 @@ const Index = () => {
                 <Bot className="w-6 h-6 text-primary" />
                 Agentic Chatbot
               </h2>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsDarkMode(!isDarkMode)}
-              >
-                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-              </Button>
             </div>
             
             <Button 
@@ -290,11 +305,11 @@ const Index = () => {
                       </Badge>
                     </div>
                     <p className="text-sm text-muted-foreground truncate mb-1">
-                      {session.systemPrompt}
+                      {session.system_prompt}
                     </p>
                     <div className="flex justify-between items-center">
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(session.createdAt)}
+                        {formatDate(session.created_at)}
                       </span>
                       {session.document && (
                         <FileText className="w-3 h-3 text-muted-foreground" />
@@ -509,8 +524,6 @@ const Index = () => {
                   </Button>
                 </div>
               </div>
-
-              <Separator />
 
               <div className="flex justify-between">
                 <Button variant="outline" onClick={() => setIsPromptModalOpen(false)}>
