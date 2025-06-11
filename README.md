@@ -1,290 +1,338 @@
 
 # Agentic Chatbot
 
-**Owner:** Pranathi Jogavajjhula  
-**Version:** 1.0  
-**Last Updated:** June 10, 2025
+An AI-powered conversational agent with document analysis, chat history persistence, and multiple AI model support (Gemini and Groq). Built with React frontend and FastAPI backend.
 
-## 🎯 Overview
+## 🎯 Features
 
-Agentic Chatbot is an advanced AI-powered conversational agent capable of analyzing documents, saving chat histories, and switching between multiple AI models (Gemini and Groq). It leverages modern web technologies to provide a seamless chat experience with document understanding capabilities.
+- **💬 Chat Interface**: Modern messenger-style UI with real-time conversations
+- **🧠 Multiple AI Models**: Switch between Gemini Pro and Groq Mixtral
+- **📄 Document Analysis**: Upload and analyze PDF, DOCX, and TXT files using RAG
+- **📝 System Prompts**: Customize AI behavior for each chat session
+- **📚 Chat History**: Persistent chat sessions stored in MongoDB
+- **🎨 Clean UI**: Responsive design with consistent theme
 
-## ✨ Features
+## 🏗️ Tech Stack
 
-### 💬 Chat Interface
-- **Messenger-style UI** with modern design
-- **Dark/Light theme** toggle for optimal viewing
-- **Real-time messaging** with typing indicators
-- **Responsive design** that works on all devices
+- **Frontend**: React + TypeScript + Vite + Tailwind CSS + shadcn/ui
+- **Backend**: FastAPI + Python
+- **AI Models**: Google Gemini API + Groq API
+- **Document Processing**: LangChain + ChromaDB
+- **Database**: MongoDB
+- **Vector Store**: ChromaDB with Sentence Transformers
 
-### 🧠 Model Switching
-- **Gemini API** integration for advanced AI responses
-- **Groq API** support for high-performance inference
-- **Dynamic model switching** during conversations
-- **Model-specific response indicators**
+## 📁 Project Structure
 
-### 📄 Document Upload & Analysis
-- **Multi-format support** (PDF, TXT, DOCX)
-- **Document parsing** and content extraction
-- **RAG (Retrieval-Augmented Generation)** for contextual responses
-- **Document-aware conversations**
+```
+agentic-chatbot/
+├── src/                    # Frontend React application
+│   ├── components/
+│   ├── pages/
+│   └── lib/
+├── backend/                # FastAPI backend
+│   ├── services/
+│   │   ├── chat_service.py
+│   │   ├── document_service.py
+│   │   ├── history_service.py
+│   │   ├── model_router.py
+│   │   └── prompt_service.py
+│   ├── main.py
+│   ├── models.py
+│   ├── config.py
+│   ├── requirements.txt
+│   └── run.py
+└── README.md
+```
 
-### 📝 System Prompt Customization
-- **Custom system prompts** to define AI behavior
-- **Role-based configurations** (coding assistant, formal, friendly, etc.)
-- **Session-specific prompts** for tailored interactions
-- **Prompt templates** for common use cases
+## 🚀 Local Setup Instructions
 
-### 📚 Chat History & Persistence
-- **Session management** with automatic saving
-- **Sidebar navigation** for easy access to previous chats
-- **Conversation timestamps** and metadata
-- **Local storage persistence** for offline access
-
-### ⚙️ Advanced Features
-- **File upload validation** and error handling
-- **Message timestamps** and formatting
-- **Loading states** and smooth animations
-- **Toast notifications** for user feedback
-
-## 🚀 Tech Stack
-
-| Layer | Technology |
-|-------|------------|
-| **Frontend** | React + TypeScript |
-| **UI Framework** | Tailwind CSS + shadcn/ui |
-| **State Management** | React Hooks + Local Storage |
-| **Icons** | Lucide React |
-| **Build Tool** | Vite |
-| **Deployment** | Vercel |
-
-## 📋 Prerequisites
-
-Before running this project locally, ensure you have:
+### Prerequisites
 
 - **Node.js** (v18 or higher)
-- **npm** or **yarn** package manager
-- **Modern web browser** (Chrome, Firefox, Safari, Edge)
+- **Python** (v3.9, 3.10, or 3.11 recommended - avoid 3.12+)
+- **MongoDB** (local installation or MongoDB Atlas)
+- **Git**
 
-## 🛠️ Local Development Setup
-
-### 1. Clone the Repository
+### Step 1: Clone the Repository
 
 ```bash
 git clone <your-repository-url>
 cd agentic-chatbot
 ```
 
-### 2. Install Dependencies
+### Step 2: Frontend Setup
 
 ```bash
+# Install frontend dependencies
 npm install
-# or
-yarn install
-```
 
-### 3. Environment Configuration
-
-For production use, you'll need to set up API keys for Gemini and Groq. Currently, the application runs with mock responses for demonstration purposes.
-
-To integrate real AI models, you would typically:
-
-1. Create API accounts with Google (Gemini) and Groq
-2. Obtain API keys
-3. Set up environment variables
-4. Configure the backend service
-
-### 4. Start Development Server
-
-```bash
+# Start the development server
 npm run dev
-# or
-yarn dev
 ```
 
-The application will be available at `http://localhost:8080`
+The frontend will be available at `http://localhost:5173`
 
-### 5. Build for Production
+### Step 3: Backend Setup
+
+#### For Windows Users
+
+Navigate to the backend directory:
+```cmd
+cd backend
+```
+
+**Option 1: Using PowerShell (Recommended)**
+```powershell
+# Run PowerShell as Administrator
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+.\install_windows.ps1
+```
+
+**Option 2: Using Command Prompt**
+```cmd
+# Run Command Prompt as Administrator
+install_windows.bat
+```
+
+**Option 3: Manual Installation**
+```powershell
+# Create virtual environment
+python -m venv venv
+.\venv\Scripts\activate
+
+# Set SSL environment variable
+$env:PYTHONHTTPSVERIFY = "0"
+
+# Install dependencies
+python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+python -m pip install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org
+```
+
+#### For Linux/Mac Users
 
 ```bash
-npm run build
-# or
-yarn build
+cd backend
+
+# Create virtual environment
+python3 -m venv venv
+source venv/bin/activate
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
-## 📱 Usage Guide
+### Step 4: Environment Configuration
 
-### Starting a New Chat
-
-1. Click **"New Chat"** in the sidebar
-2. Enter a **system prompt** to define AI behavior
-3. Select your preferred **AI model** (Gemini or Groq)
-4. Click **"Start Chat"** to begin
-
-### Uploading Documents
-
-1. In an active chat session, click the **upload button** 📎
-2. Select a PDF, TXT, or DOCX file
-3. The document will be processed and available for Q&A
-4. Ask questions about the document content
-
-### Managing Chat History
-
-- **View all sessions** in the left sidebar
-- **Click any session** to switch between conversations
-- **Session metadata** shows model used and creation date
-- **Document indicator** shows which chats include uploaded files
-
-### Customizing Experience
-
-- **Toggle themes** using the sun/moon icon
-- **Switch AI models** anytime during conversation
-- **Collapse sidebar** for focused chat view
-- **Responsive design** adapts to your screen size
-
-## 🎨 UI/UX Features
-
-### Design System
-- **Consistent color palette** with semantic tokens
-- **Smooth animations** and micro-interactions
-- **Accessible design** with proper contrast ratios
-- **Mobile-first approach** for all screen sizes
-
-### Interactive Elements
-- **Hover effects** on clickable elements
-- **Loading animations** during AI processing
-- **Toast notifications** for user feedback
-- **Keyboard shortcuts** for power users
-
-## 🔧 Configuration Options
-
-### Theme Customization
-The application supports both light and dark themes with automatic preference detection and manual override.
-
-### Model Selection
-Choose between different AI models based on your needs:
-- **Gemini**: Advanced reasoning and context understanding
-- **Groq**: High-performance inference and speed
-
-### File Upload Settings
-Supported file formats:
-- **PDF**: Document analysis and text extraction
-- **TXT**: Plain text processing
-- **DOCX**: Microsoft Word document parsing
-
-## 🚢 Deployment
-
-### Vercel Deployment (Recommended)
-
-1. Connect your repository to Vercel
-2. Configure build settings:
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-   - **Install Command**: `npm install`
-
-3. Set up environment variables (when integrating real APIs)
-4. Deploy and enjoy your live chatbot!
-
-### Alternative Deployment Options
-
-- **Netlify**: Similar setup to Vercel
-- **GitHub Pages**: For static hosting
-- **Self-hosted**: Use any web server with static file support
-
-## 🔒 Security Considerations
-
-- **Input sanitization** for all user inputs
-- **File type validation** for uploads
-- **API key protection** (when implemented)
-- **XSS prevention** through proper escaping
-
-## 🧪 Future Enhancements
-
-### Planned Features
-- [ ] **Real-time collaboration** on shared chats
-- [ ] **Export conversations** to PDF/Markdown
-- [ ] **Advanced search** through chat history
-- [ ] **Plugin system** for extended functionality
-- [ ] **Voice input/output** capabilities
-- [ ] **Multi-language support**
-
-### Backend Integration
-For production use, consider implementing:
-- **FastAPI backend** for AI model integration
-- **MongoDB** for persistent data storage
-- **Authentication system** for user management
-- **Rate limiting** and usage analytics
-
-## 📖 API Integration Guide
-
-To connect real AI models, you'll need to:
-
-### 1. Set Up Backend Service
-```python
-# Example FastAPI structure
-from fastapi import FastAPI
-from services.chat_service import ChatService
-from services.document_service import DocumentService
-
-app = FastAPI()
-
-@app.post("/api/chat")
-async def send_message(message: str, model: str):
-    return await ChatService.process_message(message, model)
+1. **Copy the environment file:**
+```bash
+cd backend
+cp .env.example .env
 ```
 
-### 2. Update Frontend API Calls
-```typescript
-// Replace mock responses with real API calls
-const response = await fetch('/api/chat', {
-  method: 'POST',
-  headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ message, model, systemPrompt })
-});
+2. **Add your API keys to `.env`:**
+```env
+# API Keys (Required)
+GEMINI_API_KEY=your-gemini-api-key-here
+GROQ_API_KEY=your-groq-api-key-here
+
+# MongoDB Configuration
+MONGODB_URL=mongodb://localhost:27017
+DATABASE_NAME=agentic_chatbot
+
+# Development
+DEBUG=True
+```
+
+### Step 5: Get API Keys
+
+#### Gemini API Key
+1. Go to [Google AI Studio](https://makersuite.google.com/app/apikey)
+2. Sign in with your Google account
+3. Create a new API key
+4. Copy the key to your `.env` file
+
+#### Groq API Key
+1. Go to [Groq Console](https://console.groq.com/keys)
+2. Create an account or sign in
+3. Create a new API key
+4. Copy the key to your `.env` file
+
+### Step 6: Database Setup
+
+#### Option 1: MongoDB Atlas (Cloud - Recommended)
+1. Create a free account at [MongoDB Atlas](https://www.mongodb.com/atlas)
+2. Create a new cluster
+3. Get your connection string
+4. Update `MONGODB_URL` in your `.env` file:
+```env
+MONGODB_URL=mongodb+srv://username:password@cluster.mongodb.net/
+```
+
+#### Option 2: Local MongoDB
+1. **Install MongoDB Community Edition:**
+   - Windows: Download from [MongoDB Download Center](https://www.mongodb.com/try/download/community)
+   - Mac: `brew install mongodb-community`
+   - Ubuntu: `sudo apt install mongodb`
+
+2. **Start MongoDB service:**
+   - Windows: MongoDB should start automatically
+   - Mac: `brew services start mongodb-community`
+   - Linux: `sudo systemctl start mongod`
+
+3. **Use default connection:**
+```env
+MONGODB_URL=mongodb://localhost:27017
+```
+
+### Step 7: Run the Application
+
+#### Start the Backend (Terminal 1)
+```bash
+cd backend
+
+# Activate virtual environment (if not already active)
+# Windows:
+.\venv\Scripts\activate
+# Linux/Mac:
+source venv/bin/activate
+
+# Run the FastAPI server
+python run.py
+```
+
+Backend will be available at:
+- API: `http://localhost:8000`
+- Interactive Docs: `http://localhost:8000/docs`
+- Alternative Docs: `http://localhost:8000/redoc`
+
+#### Start the Frontend (Terminal 2)
+```bash
+# In the root directory
+npm run dev
+```
+
+Frontend will be available at `http://localhost:5173`
+
+## 🔧 API Endpoints
+
+### Chat
+- `POST /api/chat/message` - Send a message and get AI response
+- `POST /api/chat/upload` - Upload and process documents
+
+### Sessions
+- `POST /api/sessions` - Create a new chat session
+- `GET /api/sessions` - Get all chat sessions
+- `GET /api/sessions/{session_id}` - Get a specific session
+- `DELETE /api/sessions/{session_id}` - Delete a session
+
+### System
+- `GET /api/models` - Get available AI models
+- `GET /api/health` - Health check endpoint
+
+## 🛠️ Development Commands
+
+### Frontend Commands
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
+
+### Backend Commands
+```bash
+cd backend
+python run.py        # Start FastAPI development server
+python -m pytest    # Run tests (if available)
 ```
 
 ## 🐛 Troubleshooting
 
-### Common Issues
+### SSL Certificate Issues (Windows)
+```powershell
+$env:PYTHONHTTPSVERIFY = "0"
+python -m pip install package-name --trusted-host pypi.org --trusted-host files.pythonhosted.org
+```
 
-**Build Errors:**
-- Ensure all dependencies are installed
-- Check Node.js version compatibility
-- Clear npm cache if needed
+### Rust Compilation Issues
+1. Install Rust from [rustup.rs](https://rustup.rs/)
+2. Restart your terminal
+3. Try installation again
 
-**Theme Not Applying:**
-- Check browser developer tools for CSS conflicts
-- Verify Tailwind CSS is properly configured
+### MongoDB Connection Issues
+- Ensure MongoDB is running
+- Check your connection string format
+- Verify network connectivity (for Atlas)
+- Check firewall settings
 
-**File Upload Issues:**
-- Confirm file size limits
-- Check supported file formats
-- Verify browser compatibility
+### Python Version Issues
+- Use Python 3.9, 3.10, or 3.11
+- Avoid Python 3.12+ for better package compatibility
 
-## 📄 License
+### Port Already in Use
+```bash
+# Check what's using the port
+netstat -ano | findstr :8000  # Windows
+lsof -i :8000                 # Mac/Linux
 
-This project is available for educational and demonstration purposes. Please ensure you have proper licenses for any AI APIs you integrate.
+# Kill the process or use a different port
+```
+
+## 📝 Usage
+
+1. **Start a New Chat:**
+   - Click "New Chat" button
+   - Enter a system prompt to define AI behavior
+   - Select your preferred AI model (Gemini or Groq)
+
+2. **Upload Documents:**
+   - Use the upload button in the chat
+   - Supported formats: PDF, DOCX, TXT
+   - Ask questions about the uploaded document
+
+3. **Chat History:**
+   - All conversations are automatically saved
+   - Access previous chats from the sidebar
+   - Each session maintains its context and settings
+
+## 🚀 Production Deployment
+
+### Frontend (Vercel)
+```bash
+npm run build
+# Deploy the dist/ folder to Vercel
+```
+
+### Backend
+- Deploy to platforms like Railway, Render, or DigitalOcean
+- Set environment variables in production
+- Use production MongoDB instance
+- Enable HTTPS and proper security headers
+
+## 📦 Package Versions
+
+### Frontend Dependencies
+- React 18.3.1
+- Vite (latest)
+- Tailwind CSS
+- shadcn/ui components
+- React Router DOM 6.26.2
+
+### Backend Dependencies
+- FastAPI 0.104.1
+- Python 3.9-3.11
+- LangChain 0.0.350
+- ChromaDB 0.4.15
+- Motor (MongoDB async driver)
 
 ## 🤝 Contributing
 
-Contributions are welcome! Please feel free to submit pull requests or open issues for:
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Test thoroughly
+5. Submit a pull request
 
-- Bug fixes
-- Feature enhancements
-- Documentation improvements
-- Performance optimizations
+## 📄 License
 
-## 📞 Support
-
-For questions or support regarding this project, please:
-
-1. Check the troubleshooting guide above
-2. Review the code documentation
-3. Open an issue in the repository
-4. Contact the project maintainer
-
----
-
-**Built with ❤️ by Pranathi Jogavajjhula**
-
-*This application demonstrates modern web development practices with React, TypeScript, and AI integration capabilities.*
+This project is open source and available under the MIT License.
