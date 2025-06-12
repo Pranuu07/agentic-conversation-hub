@@ -35,30 +35,25 @@ npm run dev
 ```
 Frontend runs at: `http://localhost:5173`
 
-### Step 3: Backend Setup
+### Step 3: Backend Setup - Manual Installation
 
-#### Windows Users
-```cmd
-# Navigate to backend
+#### Navigate to backend directory
+```bash
 cd backend
-
-# Run installation script
-install_windows.bat
 ```
 
-#### Linux/Mac Users
+#### Install Python dependencies manually
 ```bash
-# Navigate to backend
-cd backend
+# Upgrade pip first
+python -m pip install --upgrade pip
 
-# Install dependencies
+# Install all dependencies from requirements.txt
 pip install -r requirements.txt
 ```
 
 ### Step 4: Environment Configuration
 ```bash
 # Copy environment file
-cd backend
 cp .env.example .env
 ```
 
@@ -85,12 +80,39 @@ DATABASE_NAME=agentic_chatbot
 2. Create API key
 3. Add to `.env` file
 
-### Step 6: Run Backend
+### Step 6: Run Backend Manually
+
+After installing requirements.txt, follow these steps:
+
+1. **Make sure you're in the backend directory:**
 ```bash
-# In backend directory
+cd backend
+```
+
+2. **Verify your .env file has the API keys:**
+```bash
+# Check if .env file exists and has your keys
+cat .env
+```
+
+3. **Start the FastAPI server:**
+```bash
 python run.py
 ```
-Backend runs at: `http://localhost:8000`
+
+4. **Backend will be available at:**
+- API: `http://localhost:8000`
+- Interactive docs: `http://localhost:8000/docs`
+
+5. **You should see output like:**
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process
+```
+
+6. **Test the backend is working:**
+- Visit `http://localhost:8000/health` in your browser
+- You should see: `{"status": "healthy"}`
 
 ## 📁 Project Structure
 ```
@@ -153,6 +175,11 @@ lsof -i :8000                 # Mac/Linux
 - Check API key permissions and quotas
 - Restart backend after changing `.env`
 
+### Installation Issues
+- Make sure pip is upgraded: `python -m pip install --upgrade pip`
+- If specific packages fail, try installing them individually
+- All packages are pre-compiled (no compilation needed)
+
 ## 📦 Tech Stack
 
 **Frontend:** React + TypeScript + Vite + Tailwind CSS + shadcn/ui
@@ -170,4 +197,3 @@ lsof -i :8000                 # Mac/Linux
 ## 📄 License
 
 MIT License - Open source project
-```

@@ -3,61 +3,32 @@
 
 FastAPI backend for the Agentic Chatbot application with AI model integration and document processing.
 
-## Setup
+## Manual Setup
 
-### For Windows Users
+### Install Dependencies
 
-**Option 1: Using PowerShell (Recommended)**
-1. Open PowerShell as Administrator
-2. Navigate to the backend directory:
-```powershell
-cd backend
-```
-
-3. Run the PowerShell installation script:
-```powershell
-Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
-.\install_windows.ps1
-```
-
-**Option 2: Using Command Prompt**
-1. Open Command Prompt as Administrator
-2. Navigate to the backend directory:
-```cmd
-cd backend
-```
-
-3. Run the batch installation script:
-```cmd
-install_windows.bat
-```
-
-**Option 3: Manual Installation (if scripts fail)**
-1. Set environment variables to handle SSL issues:
-```powershell
-$env:PYTHONHTTPSVERIFY = "0"
-```
-
-2. Install dependencies manually:
-```powershell
-python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
-python -m pip install -r requirements.txt --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org
-```
-
-### For Linux/Mac Users
-
-1. Install dependencies:
+1. Navigate to the backend directory:
 ```bash
 cd backend
+```
+
+2. Upgrade pip:
+```bash
+python -m pip install --upgrade pip
+```
+
+3. Install all dependencies:
+```bash
 pip install -r requirements.txt
 ```
 
-## Key Changes - No Rust Required!
+## Key Features - No Compilation Required!
 
-This backend has been updated to **eliminate all Rust dependencies**:
+This backend has been designed to **eliminate all compilation dependencies**:
 
 - **Pydantic v1.10.12**: Uses the older stable version that doesn't require Rust
 - **FAISS instead of ChromaDB**: Uses Facebook's FAISS library for vector search (CPU version, no compilation needed)
+- **TF-IDF Vectorization**: Uses scikit-learn for text similarity (no sentence-transformers compilation)
 - **Pre-compiled packages**: All packages are available as pre-built wheels
 
 **No additional system dependencies required!** Just Python and pip.
@@ -106,13 +77,44 @@ DATABASE_NAME=agentic_chatbot
 
 ## Running the Application
 
-1. Start the FastAPI server:
+### Step-by-Step Manual Run Process:
+
+1. **Ensure you're in the backend directory:**
+```bash
+cd backend
+```
+
+2. **Verify dependencies are installed:**
+```bash
+pip list | grep fastapi
+# Should show fastapi and other packages
+```
+
+3. **Check your .env file exists and has API keys:**
+```bash
+# Windows
+type .env
+
+# Linux/Mac
+cat .env
+```
+
+4. **Start the FastAPI server:**
 ```bash
 python run.py
 ```
 
-2. The API will be available at `http://localhost:8000`
-3. Interactive API documentation: `http://localhost:8000/docs`
+5. **Verify the server is running:**
+- API will be available at `http://localhost:8000`
+- Interactive API documentation: `http://localhost:8000/docs`
+- Health check: `http://localhost:8000/health`
+
+6. **You should see output like:**
+```
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     Started reloader process
+INFO:     Started server process
+```
 
 ## API Endpoints
 
@@ -145,7 +147,7 @@ python run.py
 
 ### Vector Database
 - **FAISS**: Facebook's similarity search library (CPU version)
-- **Semantic Search**: Find relevant document sections using sentence transformers
+- **TF-IDF Search**: Find relevant document sections using TF-IDF similarity
 - **Context-Aware Responses**: AI responses based on document content
 
 ### Chat Management
@@ -155,19 +157,9 @@ python run.py
 
 ## Troubleshooting
 
-### SSL Certificate Issues
-If you encounter SSL certificate errors:
-```powershell
-# Set environment variable
-$env:PYTHONHTTPSVERIFY = "0"
-
-# Use trusted hosts
-python -m pip install package-name --trusted-host pypi.org --trusted-host files.pythonhosted.org
-```
-
 ### Python Version Compatibility
 - **Recommended**: Python 3.9, 3.10, or 3.11
-- **Python 3.13**: Should work fine with these packages (no Rust required)
+- **Python 3.13**: Should work fine with these packages (no compilation required)
 - **Avoid**: Python 3.12 if you encounter any issues
 
 ### MongoDB Connection Issues
@@ -176,9 +168,14 @@ python -m pip install package-name --trusted-host pypi.org --trusted-host files.
 - Verify network connectivity (for Atlas)
 
 ### Package Installation Issues
-- Use the provided installation scripts
-- All packages are pre-compiled (no Rust/compilation needed)
+- Make sure pip is upgraded: `python -m pip install --upgrade pip`
+- All packages are pre-compiled (no compilation needed)
 - If individual packages fail, try installing them one by one
+
+### API Key Issues
+- Verify keys are correctly set in `.env`
+- Check API key permissions and quotas
+- Restart backend after changing `.env`
 
 ## Development
 
@@ -194,14 +191,14 @@ backend/
 ├── main.py            # FastAPI application
 ├── models.py          # Pydantic data models
 ├── config.py          # Configuration settings
-└── requirements.txt   # Python dependencies (no Rust!)
+└── requirements.txt   # Python dependencies (no compilation!)
 ```
 
 ### Technical Stack
 - **FastAPI**: Modern async web framework
 - **Pydantic v1**: Data validation (no Rust required)
 - **FAISS**: Vector similarity search
-- **Sentence Transformers**: Text embeddings
+- **TF-IDF**: Text similarity using scikit-learn
 - **Motor**: Async MongoDB driver
 - **LangChain**: AI framework integration
 
