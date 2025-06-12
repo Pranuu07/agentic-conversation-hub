@@ -31,8 +31,8 @@ Install-Package "fastapi==0.104.1"
 Install-Package "uvicorn[standard]==0.24.0"
 Install-Package "python-multipart==0.0.6"
 
-# Pydantic with compatible version
-Install-Package "pydantic==2.4.2"
+# Pydantic v1 (no Rust required)
+Install-Package "pydantic==1.10.12"
 
 # MongoDB
 Install-Package "motor==3.3.2"
@@ -56,9 +56,11 @@ Install-Package "langchain==0.0.350"
 Install-Package "langchain-google-genai==0.0.6"
 Install-Package "langchain-community==0.0.2"
 
-# Vector database and embeddings
-Install-Package "chromadb==0.4.15"
+# Vector database alternatives (no Rust required)
+Install-Package "faiss-cpu==1.7.4"
 Install-Package "sentence-transformers==2.2.2"
+Install-Package "numpy==1.24.3"
+Install-Package "scikit-learn==1.3.0"
 
 Write-Host "Installation complete!" -ForegroundColor Green
 Write-Host "You can now run: python run.py" -ForegroundColor Cyan

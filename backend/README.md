@@ -52,6 +52,16 @@ cd backend
 pip install -r requirements.txt
 ```
 
+## Key Changes - No Rust Required!
+
+This backend has been updated to **eliminate all Rust dependencies**:
+
+- **Pydantic v1.10.12**: Uses the older stable version that doesn't require Rust
+- **FAISS instead of ChromaDB**: Uses Facebook's FAISS library for vector search (CPU version, no compilation needed)
+- **Pre-compiled packages**: All packages are available as pre-built wheels
+
+**No additional system dependencies required!** Just Python and pip.
+
 ## Environment Configuration
 
 1. Create a `.env` file:
@@ -134,8 +144,8 @@ python run.py
 - **RAG**: Retrieval-Augmented Generation for document Q&A
 
 ### Vector Database
-- **ChromaDB**: Store document embeddings
-- **Semantic Search**: Find relevant document sections
+- **FAISS**: Facebook's similarity search library (CPU version)
+- **Semantic Search**: Find relevant document sections using sentence transformers
 - **Context-Aware Responses**: AI responses based on document content
 
 ### Chat Management
@@ -155,20 +165,20 @@ $env:PYTHONHTTPSVERIFY = "0"
 python -m pip install package-name --trusted-host pypi.org --trusted-host files.pythonhosted.org
 ```
 
-### Rust Compilation Issues
-If packages require Rust compilation:
-1. Install Rust from [rustup.rs](https://rustup.rs/)
-2. Restart your terminal
-3. Try installation again
-
 ### Python Version Compatibility
 - **Recommended**: Python 3.9, 3.10, or 3.11
-- **Not recommended**: Python 3.12+ (some packages may not be compatible)
+- **Python 3.13**: Should work fine with these packages (no Rust required)
+- **Avoid**: Python 3.12 if you encounter any issues
 
 ### MongoDB Connection Issues
 - Ensure MongoDB is running
 - Check your connection string format
 - Verify network connectivity (for Atlas)
+
+### Package Installation Issues
+- Use the provided installation scripts
+- All packages are pre-compiled (no Rust/compilation needed)
+- If individual packages fail, try installing them one by one
 
 ## Development
 
@@ -177,21 +187,23 @@ If packages require Rust compilation:
 backend/
 ├── services/           # Business logic
 │   ├── chat_service.py    # AI chat processing
-│   ├── document_service.py # Document parsing
+│   ├── document_service.py # Document parsing with FAISS
 │   ├── history_service.py  # Chat history
 │   ├── model_router.py     # AI model routing
 │   └── prompt_service.py   # System prompt management
 ├── main.py            # FastAPI application
 ├── models.py          # Pydantic data models
 ├── config.py          # Configuration settings
-└── requirements.txt   # Python dependencies
+└── requirements.txt   # Python dependencies (no Rust!)
 ```
 
-### Adding New Features
-1. Create service modules in the `services/` directory
-2. Define Pydantic models in `models.py`
-3. Add API endpoints in `main.py`
-4. Update configuration in `config.py`
+### Technical Stack
+- **FastAPI**: Modern async web framework
+- **Pydantic v1**: Data validation (no Rust required)
+- **FAISS**: Vector similarity search
+- **Sentence Transformers**: Text embeddings
+- **Motor**: Async MongoDB driver
+- **LangChain**: AI framework integration
 
 ## Production Deployment
 
@@ -201,7 +213,3 @@ For production deployment:
 3. Set up proper logging and monitoring
 4. Use environment variables for all secrets
 5. Enable HTTPS and proper security headers
-
-```
-
-This updated backend configuration should resolve the SSL and Rust compilation issues you're experiencing on Windows.

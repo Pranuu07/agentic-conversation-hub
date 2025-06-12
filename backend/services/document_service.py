@@ -1,105 +1,156 @@
 
-import os
+import PyPDF2
+import docx
+import io
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
+from sklearn.feature_extraction.text import TfidfVectorizer
+from typing import List, Dict, Any
+import json
 import tempfile
-from typing import Dict, Any
-from langchain.document_loaders import PyPDFLoader, TextLoader, Docx2txtLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.vectorstores import Chroma
-from langchain.embeddings import SentenceTransformerEmbeddings
-from ..models import DocumentUploadResponse
+import os
 
 class DocumentService:
     def __init__(self):
-        self.text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200
-        )
-        self.embeddings = SentenceTransformerEmbeddings(model_name="all-MiniLM-L6-v2")
-        self.vector_stores = {}  # Store vector stores per session
-    
-    async def process_document(self, file_content: bytes, filename: str, session_id: str) -> DocumentUploadResponse:
-        """Process uploaded document and create vector store"""
+        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.documents = []
+        self.embeddings = None
+        self.index = None
+        
+    def extract_text_from_pdf(self, file_content: bytes) -> str:
+        """Extract text from PDF file"""
         try:
-            # Save file temporarily
-            with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(filename)[1]) as temp_file:
-                temp_file.write(file_content)
-                temp_file_path = temp_file.name
+            pdf_file = io.BytesIO(file_content)
+            pdf_reader = PyPDF2.PdfReader(pdf_file)
+            text = ""
             
-            # Load document based on file type
-            file_extension = os.path.splitext(filename)[1].lower()
+            for page in pdf_reader.pages:
+                text += page.extract_text()
             
-            if file_extension == '.pdf':
-                loader = PyPDFLoader(temp_file_path)
-            elif file_extension == '.txt':
-                loader = TextLoader(temp_file_path, encoding='utf-8')
-            elif file_extension == '.docx':
-                loader = Docx2txtLoader(temp_file_path)
+            return text.strip()
+        except Exception as e:
+            raise Exception(f"Error extracting text from PDF: {str(e)}")
+    
+    def extract_text_from_docx(self, file_content: bytes) -> str:
+        """Extract text from DOCX file"""
+        try:
+            doc_file = io.BytesIO(file_content)
+            doc = docx.Document(doc_file)
+            text = ""
+            
+            for paragraph in doc.paragraphs:
+                text += paragraph.text + "\n"
+            
+            return text.strip()
+        except Exception as e:
+            raise Exception(f"Error extracting text from DOCX: {str(e)}")
+    
+    def extract_text_from_txt(self, file_content: bytes) -> str:
+        """Extract text from TXT file"""
+        try:
+            return file_content.decode('utf-8').strip()
+        except Exception as e:
+            raise Exception(f"Error extracting text from TXT: {str(e)}")
+    
+    def process_document(self, file_content: bytes, filename: str) -> Dict[str, Any]:
+        """Process document and extract text based on file type"""
+        file_extension = filename.lower().split('.')[-1]
+        
+        try:
+            if file_extension == 'pdf':
+                text = self.extract_text_from_pdf(file_content)
+            elif file_extension == 'docx':
+                text = self.extract_text_from_docx(file_content)
+            elif file_extension == 'txt':
+                text = self.extract_text_from_txt(file_content)
             else:
-                raise ValueError(f"Unsupported file type: {file_extension}")
+                raise Exception(f"Unsupported file type: {file_extension}")
             
-            # Load and split document
-            documents = loader.load()
-            texts = self.text_splitter.split_documents(documents)
+            if not text:
+                raise Exception("No text could be extracted from the document")
             
-            # Create vector store
-            vector_store = Chroma.from_documents(
-                documents=texts,
-                embedding=self.embeddings,
-                persist_directory=f"./chroma_db_{session_id}"
-            )
+            # Split text into chunks for better processing
+            chunks = self.split_text_into_chunks(text)
             
-            # Store vector store for session
-            self.vector_stores[session_id] = vector_store
+            # Create embeddings
+            embeddings = self.embedding_model.encode(chunks)
             
-            # Extract text content
-            content = "\n".join([doc.page_content for doc in documents])
+            # Store in FAISS index
+            self.add_to_index(chunks, embeddings)
             
-            # Clean up temp file
-            os.unlink(temp_file_path)
+            return {
+                "filename": filename,
+                "text": text,
+                "chunks": len(chunks),
+                "processed": True
+            }
             
-            return DocumentUploadResponse(
-                filename=filename,
-                content=content[:1000] + "..." if len(content) > 1000 else content,
-                processed=True,
-                message=f"Document '{filename}' processed successfully. {len(texts)} chunks created."
-            )
-        
         except Exception as e:
-            if 'temp_file_path' in locals():
-                try:
-                    os.unlink(temp_file_path)
-                except:
-                    pass
-            
-            return DocumentUploadResponse(
-                filename=filename,
-                content="",
-                processed=False,
-                message=f"Error processing document: {str(e)}"
-            )
+            return {
+                "filename": filename,
+                "text": "",
+                "chunks": 0,
+                "processed": False,
+                "error": str(e)
+            }
     
-    async def query_document(self, session_id: str, query: str, k: int = 3) -> str:
-        """Query the document using vector similarity search"""
-        try:
-            if session_id not in self.vector_stores:
-                return "No document available for this session."
-            
-            vector_store = self.vector_stores[session_id]
-            docs = vector_store.similarity_search(query, k=k)
-            
-            context = "\n".join([doc.page_content for doc in docs])
-            return context
+    def split_text_into_chunks(self, text: str, chunk_size: int = 1000, overlap: int = 200) -> List[str]:
+        """Split text into overlapping chunks"""
+        words = text.split()
+        chunks = []
         
-        except Exception as e:
-            return f"Error querying document: {str(e)}"
+        for i in range(0, len(words), chunk_size - overlap):
+            chunk = ' '.join(words[i:i + chunk_size])
+            chunks.append(chunk)
+            
+            if i + chunk_size >= len(words):
+                break
+        
+        return chunks
     
-    def cleanup_session(self, session_id: str):
-        """Clean up vector store for a session"""
-        if session_id in self.vector_stores:
-            del self.vector_stores[session_id]
-            # Also remove the persistent directory
-            import shutil
-            try:
-                shutil.rmtree(f"./chroma_db_{session_id}")
-            except:
-                pass
+    def add_to_index(self, chunks: List[str], embeddings: np.ndarray):
+        """Add document chunks to FAISS index"""
+        if self.index is None:
+            # Initialize FAISS index
+            dimension = embeddings.shape[1]
+            self.index = faiss.IndexFlatL2(dimension)
+            self.documents = []
+        
+        # Add embeddings to index
+        self.index.add(embeddings.astype('float32'))
+        
+        # Store document chunks
+        self.documents.extend(chunks)
+    
+    def search_similar_chunks(self, query: str, k: int = 5) -> List[str]:
+        """Search for similar document chunks"""
+        if self.index is None or len(self.documents) == 0:
+            return []
+        
+        # Encode query
+        query_embedding = self.embedding_model.encode([query])
+        
+        # Search in FAISS index
+        distances, indices = self.index.search(query_embedding.astype('float32'), k)
+        
+        # Return relevant chunks
+        relevant_chunks = []
+        for idx in indices[0]:
+            if idx < len(self.documents):
+                relevant_chunks.append(self.documents[idx])
+        
+        return relevant_chunks
+    
+    def get_context_for_query(self, query: str) -> str:
+        """Get relevant context for a query from processed documents"""
+        relevant_chunks = self.search_similar_chunks(query, k=3)
+        
+        if not relevant_chunks:
+            return ""
+        
+        context = "\n\n".join(relevant_chunks)
+        return f"Relevant context from documents:\n\n{context}"
+
+# Global instance
+document_service = DocumentService()
