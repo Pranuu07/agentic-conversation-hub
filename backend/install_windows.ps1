@@ -24,7 +24,6 @@ $packages = @(
     "python-dotenv==1.0.0",
     "groq==0.4.1",
     "google-generativeai==0.3.2",
-    "sentence-transformers==2.2.2",
     "faiss-cpu==1.7.4",
     "requests==2.31.0",
     "aiofiles==23.2.1",

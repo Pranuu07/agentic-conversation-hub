@@ -4,8 +4,8 @@ import docx
 import io
 import faiss
 import numpy as np
-from sentence_transformers import SentenceTransformer
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 from typing import List, Dict, Any
 import json
 import tempfile
@@ -13,10 +13,11 @@ import os
 
 class DocumentService:
     def __init__(self):
-        self.embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+        self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
         self.documents = []
         self.embeddings = None
         self.index = None
+        self.fitted = False
         
     def extract_text_from_pdf(self, file_content: bytes) -> str:
         """Extract text from PDF file"""
@@ -73,11 +74,8 @@ class DocumentService:
             # Split text into chunks for better processing
             chunks = self.split_text_into_chunks(text)
             
-            # Create embeddings
-            embeddings = self.embedding_model.encode(chunks)
-            
-            # Store in FAISS index
-            self.add_to_index(chunks, embeddings)
+            # Create TF-IDF embeddings
+            self.add_to_index(chunks)
             
             return {
                 "filename": filename,
@@ -109,38 +107,41 @@ class DocumentService:
         
         return chunks
     
-    def add_to_index(self, chunks: List[str], embeddings: np.ndarray):
-        """Add document chunks to FAISS index"""
-        if self.index is None:
-            # Initialize FAISS index
-            dimension = embeddings.shape[1]
-            self.index = faiss.IndexFlatL2(dimension)
-            self.documents = []
-        
-        # Add embeddings to index
-        self.index.add(embeddings.astype('float32'))
-        
-        # Store document chunks
+    def add_to_index(self, chunks: List[str]):
+        """Add document chunks to TF-IDF index"""
+        # Add new chunks to existing documents
         self.documents.extend(chunks)
+        
+        # Re-fit the vectorizer with all documents
+        if len(self.documents) > 0:
+            self.embeddings = self.vectorizer.fit_transform(self.documents)
+            self.fitted = True
     
     def search_similar_chunks(self, query: str, k: int = 5) -> List[str]:
-        """Search for similar document chunks"""
-        if self.index is None or len(self.documents) == 0:
+        """Search for similar document chunks using TF-IDF similarity"""
+        if not self.fitted or len(self.documents) == 0:
             return []
         
-        # Encode query
-        query_embedding = self.embedding_model.encode([query])
-        
-        # Search in FAISS index
-        distances, indices = self.index.search(query_embedding.astype('float32'), k)
-        
-        # Return relevant chunks
-        relevant_chunks = []
-        for idx in indices[0]:
-            if idx < len(self.documents):
-                relevant_chunks.append(self.documents[idx])
-        
-        return relevant_chunks
+        try:
+            # Transform query using fitted vectorizer
+            query_vector = self.vectorizer.transform([query])
+            
+            # Calculate cosine similarity
+            similarities = cosine_similarity(query_vector, self.embeddings).flatten()
+            
+            # Get top k most similar chunks
+            top_indices = similarities.argsort()[-k:][::-1]
+            
+            # Return relevant chunks
+            relevant_chunks = []
+            for idx in top_indices:
+                if idx < len(self.documents) and similarities[idx] > 0.1:  # threshold
+                    relevant_chunks.append(self.documents[idx])
+            
+            return relevant_chunks
+        except Exception as e:
+            print(f"Error in similarity search: {e}")
+            return []
     
     def get_context_for_query(self, query: str) -> str:
         """Get relevant context for a query from processed documents"""

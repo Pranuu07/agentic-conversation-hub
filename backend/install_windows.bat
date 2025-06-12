@@ -36,9 +36,8 @@ python -m pip install langchain==0.0.350
 python -m pip install langchain-google-genai==0.0.6
 python -m pip install langchain-community==0.0.2
 
-echo Installing vector database...
+echo Installing vector processing...
 python -m pip install faiss-cpu==1.7.4
-python -m pip install sentence-transformers==2.2.2
 python -m pip install numpy==1.24.3
 python -m pip install scikit-learn==1.3.0
 
