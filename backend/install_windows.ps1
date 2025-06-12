@@ -1,66 +1,45 @@
 
-# PowerShell installation script for Windows
-Write-Host "Installing Python dependencies for Windows..." -ForegroundColor Green
-
-# Set environment variables to handle SSL issues
-$env:PYTHONHTTPSVERIFY = "0"
-$env:PIP_TRUSTED_HOST = "pypi.org,files.pythonhosted.org,pypi.python.org"
-
-# Function to install package with retry
-function Install-Package {
-    param($PackageName)
-    Write-Host "Installing $PackageName..." -ForegroundColor Yellow
-    
-    $result = python -m pip install $PackageName --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "Failed to install $PackageName, trying with --no-cache-dir..." -ForegroundColor Red
-        python -m pip install $PackageName --trusted-host pypi.org --trusted-host files.pythonhosted.org --trusted-host pypi.python.org --no-cache-dir
-    }
-}
+# Simple PowerShell installation script for local development
+Write-Host "Installing Python dependencies for local development..." -ForegroundColor Green
 
 # Upgrade pip first
-Write-Host "Upgrading pip..." -ForegroundColor Green
-python -m pip install --upgrade pip --trusted-host pypi.org --trusted-host files.pythonhosted.org
+python -m pip install --upgrade pip
 
-# Install wheel and setuptools first
-Install-Package "wheel"
-Install-Package "setuptools"
+# Install packages directly without SSL complications
+Write-Host "Installing core dependencies..." -ForegroundColor Yellow
 
-# Core FastAPI dependencies
-Install-Package "fastapi==0.104.1"
-Install-Package "uvicorn[standard]==0.24.0"
-Install-Package "python-multipart==0.0.6"
+# Install packages one by one for better error handling
+$packages = @(
+    "fastapi==0.104.1",
+    "uvicorn[standard]==0.24.0",
+    "python-multipart==0.0.6",
+    "pydantic==1.10.12",
+    "motor==3.3.2",
+    "pymongo[srv]==4.6.0",
+    "langchain==0.0.350",
+    "langchain-google-genai==0.0.6",
+    "langchain-community==0.0.2",
+    "python-docx==1.1.0",
+    "PyPDF2==3.0.1",
+    "python-dotenv==1.0.0",
+    "groq==0.4.1",
+    "google-generativeai==0.3.2",
+    "sentence-transformers==2.2.2",
+    "faiss-cpu==1.7.4",
+    "requests==2.31.0",
+    "aiofiles==23.2.1",
+    "numpy==1.24.3",
+    "scikit-learn==1.3.0"
+)
 
-# Pydantic v1 (no Rust required)
-Install-Package "pydantic==1.10.12"
-
-# MongoDB
-Install-Package "motor==3.3.2"
-Install-Package "pymongo[srv]==4.6.0"
-
-# Document processing
-Install-Package "python-docx==1.1.0"
-Install-Package "PyPDF2==3.0.1"
-
-# Utilities
-Install-Package "python-dotenv==1.0.0"
-Install-Package "requests==2.31.0"
-Install-Package "aiofiles==23.2.1"
-
-# AI APIs
-Install-Package "groq==0.4.1"
-Install-Package "google-generativeai==0.3.2"
-
-# LangChain
-Install-Package "langchain==0.0.350"
-Install-Package "langchain-google-genai==0.0.6"
-Install-Package "langchain-community==0.0.2"
-
-# Vector database alternatives (no Rust required)
-Install-Package "faiss-cpu==1.7.4"
-Install-Package "sentence-transformers==2.2.2"
-Install-Package "numpy==1.24.3"
-Install-Package "scikit-learn==1.3.0"
+foreach ($package in $packages) {
+    Write-Host "Installing $package..." -ForegroundColor Cyan
+    python -m pip install $package
+    if ($LASTEXITCODE -ne 0) {
+        Write-Host "Failed to install $package" -ForegroundColor Red
+        exit 1
+    }
+}
 
 Write-Host "Installation complete!" -ForegroundColor Green
 Write-Host "You can now run: python run.py" -ForegroundColor Cyan

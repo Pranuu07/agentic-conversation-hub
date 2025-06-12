@@ -3,20 +3,21 @@ from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 import uuid
+import os
 from datetime import datetime
 from typing import List
 
-from .config import settings
-from .models import *
-from .services.chat_service import ChatService
-from .services.document_service import DocumentService
-from .services.history_service import HistoryService
-from .services.model_router import ModelRouter
-from .services.prompt_service import PromptService
+from config import settings
+from models import *
+from services.chat_service import ChatService
+from services.document_service import DocumentService
+from services.history_service import HistoryService
+from services.model_router import ModelRouter
+from services.prompt_service import PromptService
 
 app = FastAPI(title="Agentic Chatbot API", version="1.0.0")
 
-# Add CORS middleware
+# Add CORS middleware for local development
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
@@ -33,7 +34,7 @@ prompt_service = PromptService()
 
 @app.get("/")
 async def root():
-    return {"message": "Agentic Chatbot API", "version": "1.0.0"}
+    return {"message": "Agentic Chatbot API", "version": "1.0.0", "status": "running"}
 
 @app.get("/health")
 async def health_check():
@@ -158,8 +159,6 @@ async def upload_document(session_id: str, file: UploadFile = File(...)):
 async def analyze_document(request: DocumentAnalysisRequest):
     """Analyze document content with a specific question"""
     try:
-        # This would use the document service to analyze content
-        # For now, return a simple response
         return {
             "analysis": f"Analysis of the document regarding: {request.question}",
             "model_used": request.model.value
