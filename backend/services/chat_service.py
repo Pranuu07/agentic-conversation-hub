@@ -3,8 +3,8 @@ import google.generativeai as genai
 from groq import Groq
 from datetime import datetime
 import uuid
-from ..config import settings
-from ..models import MessageResponse, ModelType, MessageType
+from config import settings
+from models import MessageResponse, ModelType, MessageType
 
 class ChatService:
     def __init__(self):

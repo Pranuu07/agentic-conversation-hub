@@ -3,8 +3,8 @@ from motor.motor_asyncio import AsyncIOMotorClient
 from datetime import datetime
 from typing import List, Optional
 import uuid
-from ..config import settings
-from ..models import ChatSession, MessageResponse, SessionCreateRequest
+from config import settings
+from models import ChatSession, MessageResponse, SessionCreateRequest
 
 class HistoryService:
     def __init__(self):

@@ -1,6 +1,6 @@
 
 from enum import Enum
-from ..models import ModelType
+from models import ModelType
 
 class ModelRouter:
     """Router for managing different AI models"""

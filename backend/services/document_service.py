@@ -14,10 +14,9 @@ import os
 class DocumentService:
     def __init__(self):
         self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
-        self.documents = []
-        self.embeddings = None
-        self.index = None
-        self.fitted = False
+        self.documents = {}  # session_id -> documents
+        self.embeddings = {}  # session_id -> embeddings
+        self.fitted = {}  # session_id -> bool
         
     def extract_text_from_pdf(self, file_content: bytes) -> str:
         """Extract text from PDF file"""
@@ -54,7 +53,7 @@ class DocumentService:
         except Exception as e:
             raise Exception(f"Error extracting text from TXT: {str(e)}")
     
-    def process_document(self, file_content: bytes, filename: str) -> Dict[str, Any]:
+    async def process_document(self, file_content: bytes, filename: str, session_id: str) -> Dict[str, Any]:
         """Process document and extract text based on file type"""
         file_extension = filename.lower().split('.')[-1]
         
@@ -74,8 +73,8 @@ class DocumentService:
             # Split text into chunks for better processing
             chunks = self.split_text_into_chunks(text)
             
-            # Create TF-IDF embeddings
-            self.add_to_index(chunks)
+            # Create TF-IDF embeddings for this session
+            self.add_to_index(chunks, session_id)
             
             return {
                 "filename": filename,
@@ -107,27 +106,39 @@ class DocumentService:
         
         return chunks
     
-    def add_to_index(self, chunks: List[str]):
-        """Add document chunks to TF-IDF index"""
-        # Add new chunks to existing documents
-        self.documents.extend(chunks)
+    def add_to_index(self, chunks: List[str], session_id: str):
+        """Add document chunks to TF-IDF index for specific session"""
+        # Initialize session storage if not exists
+        if session_id not in self.documents:
+            self.documents[session_id] = []
         
-        # Re-fit the vectorizer with all documents
-        if len(self.documents) > 0:
-            self.embeddings = self.vectorizer.fit_transform(self.documents)
-            self.fitted = True
+        # Add new chunks to existing documents for this session
+        self.documents[session_id].extend(chunks)
+        
+        # Re-fit the vectorizer with all documents for this session
+        if len(self.documents[session_id]) > 0:
+            vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+            self.embeddings[session_id] = vectorizer.fit_transform(self.documents[session_id])
+            self.fitted[session_id] = True
+            # Store the vectorizer for this session
+            setattr(self, f'vectorizer_{session_id}', vectorizer)
     
-    def search_similar_chunks(self, query: str, k: int = 5) -> List[str]:
+    def search_similar_chunks(self, query: str, session_id: str, k: int = 5) -> List[str]:
         """Search for similar document chunks using TF-IDF similarity"""
-        if not self.fitted or len(self.documents) == 0:
+        if session_id not in self.fitted or not self.fitted[session_id] or len(self.documents[session_id]) == 0:
             return []
         
         try:
+            # Get the vectorizer for this session
+            vectorizer = getattr(self, f'vectorizer_{session_id}', None)
+            if not vectorizer:
+                return []
+            
             # Transform query using fitted vectorizer
-            query_vector = self.vectorizer.transform([query])
+            query_vector = vectorizer.transform([query])
             
             # Calculate cosine similarity
-            similarities = cosine_similarity(query_vector, self.embeddings).flatten()
+            similarities = cosine_similarity(query_vector, self.embeddings[session_id]).flatten()
             
             # Get top k most similar chunks
             top_indices = similarities.argsort()[-k:][::-1]
@@ -135,23 +146,34 @@ class DocumentService:
             # Return relevant chunks
             relevant_chunks = []
             for idx in top_indices:
-                if idx < len(self.documents) and similarities[idx] > 0.1:  # threshold
-                    relevant_chunks.append(self.documents[idx])
+                if idx < len(self.documents[session_id]) and similarities[idx] > 0.1:  # threshold
+                    relevant_chunks.append(self.documents[session_id][idx])
             
             return relevant_chunks
         except Exception as e:
             print(f"Error in similarity search: {e}")
             return []
     
-    def get_context_for_query(self, query: str) -> str:
+    async def query_document(self, session_id: str, query: str) -> str:
         """Get relevant context for a query from processed documents"""
-        relevant_chunks = self.search_similar_chunks(query, k=3)
+        relevant_chunks = self.search_similar_chunks(query, session_id, k=3)
         
         if not relevant_chunks:
             return ""
         
         context = "\n\n".join(relevant_chunks)
         return f"Relevant context from documents:\n\n{context}"
-
-# Global instance
-document_service = DocumentService()
+    
+    def cleanup_session(self, session_id: str):
+        """Clean up session data"""
+        if session_id in self.documents:
+            del self.documents[session_id]
+        if session_id in self.embeddings:
+            del self.embeddings[session_id]
+        if session_id in self.fitted:
+            del self.fitted[session_id]
+        
+        # Remove session-specific vectorizer
+        vectorizer_attr = f'vectorizer_{session_id}'
+        if hasattr(self, vectorizer_attr):
+            delattr(self, vectorizer_attr)
