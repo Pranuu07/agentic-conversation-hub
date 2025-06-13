@@ -9,11 +9,21 @@ from models import MessageResponse, ModelType, MessageType
 class ChatService:
     def __init__(self):
         # Initialize Gemini
-        genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.gemini_model = genai.GenerativeModel('gemini-pro')
+        if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-gemini-api-key":
+            genai.configure(api_key=settings.GEMINI_API_KEY)
+            self.gemini_model = genai.GenerativeModel('gemini-pro')
+        else:
+            self.gemini_model = None
         
-        # Initialize Groq
-        self.groq_client = Groq(api_key=settings.GROQ_API_KEY)
+        # Initialize Groq with simplified initialization
+        if settings.GROQ_API_KEY and settings.GROQ_API_KEY != "your-groq-api-key":
+            try:
+                self.groq_client = Groq(api_key=settings.GROQ_API_KEY)
+            except Exception as e:
+                print(f"Warning: Could not initialize Groq client: {e}")
+                self.groq_client = None
+        else:
+            self.groq_client = None
     
     async def process_message(self, content: str, model: ModelType, system_prompt: str, document_context: str = None) -> MessageResponse:
         """Process a user message and return AI response"""
@@ -24,12 +34,12 @@ class ChatService:
                 full_prompt += f"Document Context: {document_context}\n\n"
             full_prompt += f"User: {content}"
             
-            if model == ModelType.GEMINI:
+            if model == ModelType.GEMINI and self.gemini_model:
                 response_content = await self._call_gemini(full_prompt)
-            elif model == ModelType.GROQ:
+            elif model == ModelType.GROQ and self.groq_client:
                 response_content = await self._call_groq(full_prompt, system_prompt)
             else:
-                raise ValueError(f"Unsupported model: {model}")
+                response_content = f"Model {model.value} is not available. Please check your API keys in the .env file."
             
             return MessageResponse(
                 id=str(uuid.uuid4()),
