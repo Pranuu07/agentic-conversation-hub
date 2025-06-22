@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Upload, MessageSquare, Bot, User, FileText, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -34,7 +33,7 @@ interface ChatSession {
   created_at: Date;
 }
 
-const API_BASE_URL = 'http://localhost:8000/api';
+const API_BASE_URL = 'https://chatbot-backend-ny74.onrender.com/api';
 
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState('gemini');

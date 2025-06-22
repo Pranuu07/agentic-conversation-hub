@@ -1,4 +1,3 @@
-
 import os
 from dotenv import load_dotenv
 
@@ -13,14 +12,20 @@ class Settings:
     MONGODB_URL = os.getenv("MONGODB_URL", "mongodb://localhost:27017")
     DATABASE_NAME = os.getenv("DATABASE_NAME", "agentic_chatbot")
     
-    # CORS Settings - Updated for local development
+    # CORS Settings - Updated for production deployment
     ALLOWED_ORIGINS = [
         "http://localhost:3000",
         "http://localhost:5173",
         "http://localhost:8080",
         "http://127.0.0.1:3000",
         "http://127.0.0.1:5173",
-        "http://127.0.0.1:8080"
+        "http://127.0.0.1:8080",
+        "https://agentic-conversation-hub.vercel.app",
+        "https://agentic-conversation-hub.netlify.app",
+        "https://agentic-conversation-hub.onrender.com",
+        "https://chatbot-frontend.vercel.app",
+        "https://chatbot-frontend.netlify.app",
+        "https://chatbot-frontend.onrender.com"
     ]
     
     # File Upload Settings

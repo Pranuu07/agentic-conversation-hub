@@ -1,6 +1,5 @@
-
 import google.generativeai as genai
-from groq import Groq
+import groq
 from datetime import datetime
 import uuid
 from config import settings
@@ -11,14 +10,14 @@ class ChatService:
         # Initialize Gemini
         if settings.GEMINI_API_KEY and settings.GEMINI_API_KEY != "your-gemini-api-key":
             genai.configure(api_key=settings.GEMINI_API_KEY)
-            self.gemini_model = genai.GenerativeModel('gemini-pro')
+            self.gemini_model = genai.GenerativeModel('gemini-1.5-flash')
         else:
             self.gemini_model = None
         
         # Initialize Groq with simplified initialization
         if settings.GROQ_API_KEY and settings.GROQ_API_KEY != "your-groq-api-key":
             try:
-                self.groq_client = Groq(api_key=settings.GROQ_API_KEY)
+                self.groq_client = groq.Client(api_key=settings.GROQ_API_KEY)
             except Exception as e:
                 print(f"Warning: Could not initialize Groq client: {e}")
                 self.groq_client = None
@@ -74,7 +73,7 @@ class ChatService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": prompt}
                 ],
-                model="mixtral-8x7b-32768",
+                model="meta-llama/llama-4-scout-17b-16e-instruct",
                 temperature=0.7,
                 max_tokens=1024
             )
