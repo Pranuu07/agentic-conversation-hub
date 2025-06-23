@@ -33,7 +33,7 @@ interface ChatSession {
   created_at: Date;
 }
 
-const API_BASE_URL = 'https://chatbot-backend-ny74.onrender.com/api';
+const API_BASE_URL = 'https://chatbot-backend-jc8m.onrender.com/api';
 
 const Index = () => {
   const [selectedModel, setSelectedModel] = useState('gemini');
