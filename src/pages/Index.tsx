@@ -1,9 +1,9 @@
+
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, Upload, MessageSquare, Bot, User, FileText, Sparkles } from 'lucide-react';
+import { Send, Upload, MessageSquare, Bot, User, FileText, Sparkles, Menu, X, Settings, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -41,7 +41,7 @@ const Index = () => {
   const [sessions, setSessions] = useState<ChatSession[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [systemPrompt, setSystemPrompt] = useState('');
-  const [isPromptModalOpen, setIsPromptModalOpen] = useState(false);
+  const [showSystemPrompt, setShowSystemPrompt] = useState(false);
   const [uploadedDocument, setUploadedDocument] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -80,9 +80,18 @@ const Index = () => {
     }
   };
 
+  const handleNewChat = () => {
+    setShowSystemPrompt(true);
+    setSystemPrompt('');
+  };
+
   const createNewSession = async () => {
     if (!systemPrompt.trim()) {
-      setIsPromptModalOpen(true);
+      toast({
+        title: "System prompt required",
+        description: "Please enter a system prompt to start the chat",
+        variant: "destructive"
+      });
       return;
     }
 
@@ -109,12 +118,12 @@ const Index = () => {
         
         setSessions(prev => [sessionWithDates, ...prev]);
         setCurrentSession(sessionWithDates);
-        setIsPromptModalOpen(false);
+        setShowSystemPrompt(false);
         setUploadedDocument(null);
         
         toast({
-          title: "New chat session created",
-          description: `Using ${selectedModel.toUpperCase()} model`,
+          title: "Chat started",
+          description: `New session with ${selectedModel.toUpperCase()}`,
         });
       }
     } catch (error) {
@@ -241,44 +250,48 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
+    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="flex w-full">
-        {/* Sidebar */}
-        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden border-r border-border bg-card`}>
-          <div className="p-4 border-b border-border">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold flex items-center gap-2">
-                <Bot className="w-6 h-6 text-primary" />
-                Agentic Chatbot
-              </h2>
+        {/* Modern Sidebar */}
+        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50`}>
+          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                  <Bot className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Agentic Chat</h2>
+                  <p className="text-xs text-slate-500">AI Assistant</p>
+                </div>
+              </div>
             </div>
             
             <Button 
-              onClick={() => setIsPromptModalOpen(true)} 
-              className="w-full mb-4"
-              variant="default"
+              onClick={handleNewChat} 
+              className="w-full mb-6 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-200"
             >
-              <MessageSquare className="w-4 h-4 mr-2" />
+              <Plus className="w-4 h-4 mr-2" />
               New Chat
             </Button>
 
-            <div className="space-y-2">
-              <Label htmlFor="model-select">AI Model</Label>
+            <div className="space-y-3">
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
               <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger>
+                <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="gemini">
                     <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4" />
-                      Gemini
+                      <Sparkles className="w-4 h-4 text-amber-500" />
+                      Gemini Pro
                     </div>
                   </SelectItem>
                   <SelectItem value="groq">
                     <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4" />
-                      Groq
+                      <Bot className="w-4 h-4 text-green-500" />
+                      Groq Mixtral
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -287,31 +300,36 @@ const Index = () => {
           </div>
 
           <ScrollArea className="flex-1 p-4">
-            <div className="space-y-2">
+            <div className="space-y-3">
               {sessions.map((session) => (
                 <Card 
                   key={session.id} 
-                  className={`cursor-pointer transition-all hover:bg-accent ${
-                    currentSession?.id === session.id ? 'bg-accent border-primary' : ''
-                  }`}
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md ${
+                    currentSession?.id === session.id 
+                      ? 'bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-blue-200 dark:border-blue-800 shadow-md' 
+                      : 'bg-white/50 dark:bg-slate-800/50 border-slate-200/50 dark:border-slate-700/50 hover:bg-white dark:hover:bg-slate-800'
+                  } rounded-xl border backdrop-blur-sm`}
                   onClick={() => setCurrentSession(session)}
                 >
-                  <CardContent className="p-3">
+                  <CardContent className="p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium truncate">{session.title}</h3>
-                      <Badge variant="secondary" className="text-xs">
+                      <h3 className="font-medium truncate text-slate-800 dark:text-slate-200">{session.title}</h3>
+                      <Badge 
+                        variant="secondary" 
+                        className="text-xs bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-lg"
+                      >
                         {session.model.toUpperCase()}
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground truncate mb-1">
+                    <p className="text-sm text-slate-500 dark:text-slate-400 truncate mb-2">
                       {session.system_prompt}
                     </p>
                     <div className="flex justify-between items-center">
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-xs text-slate-400">
                         {formatDate(session.created_at)}
                       </span>
                       {session.document && (
-                        <FileText className="w-3 h-3 text-muted-foreground" />
+                        <FileText className="w-3 h-3 text-slate-400" />
                       )}
                     </div>
                   </CardContent>
@@ -323,21 +341,22 @@ const Index = () => {
 
         {/* Main Chat Area */}
         <div className="flex-1 flex flex-col">
-          {/* Header */}
-          <div className="border-b border-border p-4 bg-card">
+          {/* Modern Header */}
+          <div className="border-b border-slate-200/50 dark:border-slate-700/50 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-4">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setSidebarOpen(!sidebarOpen)}
+                  className="rounded-xl h-10 w-10 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
-                  <MessageSquare className="w-4 h-4" />
+                  {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
                 </Button>
                 {currentSession && (
                   <div>
-                    <h1 className="font-semibold">{currentSession.title}</h1>
-                    <p className="text-sm text-muted-foreground">
+                    <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-200">{currentSession.title}</h1>
+                    <p className="text-sm text-slate-500">
                       {currentSession.model.toUpperCase()} • {currentSession.messages.length} messages
                     </p>
                   </div>
@@ -345,79 +364,134 @@ const Index = () => {
               </div>
               
               {currentSession && (
-                <Badge variant="outline" className="flex items-center gap-1">
-                  {selectedModel === 'gemini' ? <Sparkles className="w-3 h-3" /> : <Bot className="w-3 h-3" />}
+                <Badge 
+                  variant="outline" 
+                  className="flex items-center gap-2 px-3 py-1 rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+                >
+                  {selectedModel === 'gemini' ? 
+                    <Sparkles className="w-3 h-3 text-amber-500" /> : 
+                    <Bot className="w-3 h-3 text-green-500" />
+                  }
                   {selectedModel.toUpperCase()}
                 </Badge>
               )}
             </div>
           </div>
 
+          {/* System Prompt Input */}
+          {showSystemPrompt && (
+            <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-slate-200/50 dark:border-slate-700/50">
+              <div className="max-w-2xl mx-auto space-y-4">
+                <div className="text-center">
+                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">Configure Your AI Assistant</h3>
+                  <p className="text-slate-600 dark:text-slate-400 text-sm">Define how the AI should behave and respond</p>
+                </div>
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="You are a helpful assistant that provides clear, concise explanations..."
+                    value={systemPrompt}
+                    onChange={(e) => setSystemPrompt(e.target.value)}
+                    rows={3}
+                    className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
+                  />
+                  <div className="flex justify-center gap-3">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowSystemPrompt(false)}
+                      className="rounded-xl"
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={createNewSession} 
+                      disabled={!systemPrompt.trim()}
+                      className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                    >
+                      Start Chat
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Messages */}
-          <ScrollArea className="flex-1 p-4">
+          <ScrollArea className="flex-1 p-6">
             {!currentSession ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
-                <Bot className="w-16 h-16 text-muted-foreground mb-4" />
-                <h2 className="text-2xl font-bold mb-2">Welcome to Agentic Chatbot</h2>
-                <p className="text-muted-foreground mb-4 max-w-md">
-                  Start a new conversation by setting up your system prompt and selecting an AI model.
+                <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/25">
+                  <Bot className="w-12 h-12 text-white" />
+                </div>
+                <h2 className="text-3xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                  Welcome to Agentic Chat
+                </h2>
+                <p className="text-slate-600 dark:text-slate-400 mb-8 max-w-md leading-relaxed">
+                  Experience intelligent conversations with advanced AI models. Start by creating a new chat session.
                 </p>
-                <Button onClick={() => setIsPromptModalOpen(true)}>
-                  <MessageSquare className="w-4 h-4 mr-2" />
+                <Button 
+                  onClick={handleNewChat}
+                  className="h-12 px-8 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
                   Start New Chat
                 </Button>
               </div>
             ) : (
-              <div className="space-y-4 max-w-4xl mx-auto">
+              <div className="space-y-6 max-w-4xl mx-auto">
                 {currentSession.messages.map((message) => (
                   <div
                     key={message.id}
-                    className={`flex gap-3 ${message.type === 'user' ? 'justify-end' : 'justify-start'}`}
+                    className={`flex gap-4 ${message.type === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}
                   >
                     {message.type === 'bot' && (
-                      <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                        <Bot className="w-4 h-4 text-primary-foreground" />
+                      <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                        <Bot className="w-5 h-5 text-white" />
                       </div>
                     )}
                     
-                    <div className={`max-w-[70%] ${message.type === 'user' ? 'order-first' : ''}`}>
-                      <Card className={`${message.type === 'user' ? 'bg-primary text-primary-foreground' : 'bg-card'}`}>
-                        <CardContent className="p-3">
-                          <p className="whitespace-pre-wrap">{message.content}</p>
-                          <div className="flex items-center gap-2 mt-2 text-xs opacity-70">
-                            <span>{formatTime(message.timestamp)}</span>
-                            {message.model && (
-                              <Badge variant="secondary" className="text-xs">
-                                {message.model.toUpperCase()}
-                              </Badge>
-                            )}
-                          </div>
-                        </CardContent>
-                      </Card>
+                    <div className={`max-w-[75%] ${message.type === 'user' ? 'order-first' : ''}`}>
+                      <div className={`rounded-2xl p-4 shadow-sm backdrop-blur-sm ${
+                        message.type === 'user' 
+                          ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white' 
+                          : 'bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50'
+                      }`}>
+                        <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
+                        <div className={`flex items-center gap-2 mt-3 text-xs ${
+                          message.type === 'user' ? 'text-blue-100' : 'text-slate-500'
+                        }`}>
+                          <span>{formatTime(message.timestamp)}</span>
+                          {message.model && (
+                            <Badge 
+                              variant="secondary" 
+                              className="text-xs bg-white/20 text-current border-0"
+                            >
+                              {message.model.toUpperCase()}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {message.type === 'user' && (
-                      <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center flex-shrink-0">
-                        <User className="w-4 h-4" />
+                      <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
+                        <User className="w-5 h-5 text-slate-600 dark:text-slate-300" />
                       </div>
                     )}
                   </div>
                 ))}
                 
                 {isLoading && (
-                  <div className="flex gap-3 justify-start">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0">
-                      <Bot className="w-4 h-4 text-primary-foreground" />
+                  <div className="flex gap-4 justify-start animate-fade-in">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
+                      <Bot className="w-5 h-5 text-white" />
                     </div>
-                    <Card className="bg-card">
-                      <CardContent className="p-3">
-                        <div className="flex space-x-1">
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse"></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse delay-75"></div>
-                          <div className="w-2 h-2 bg-muted-foreground rounded-full animate-pulse delay-150"></div>
-                        </div>
-                      </CardContent>
-                    </Card>
+                    <div className="bg-white/80 dark:bg-slate-800/80 border border-slate-200/50 dark:border-slate-700/50 rounded-2xl p-4 shadow-sm backdrop-blur-sm">
+                      <div className="flex space-x-2">
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse delay-75"></div>
+                        <div className="w-2 h-2 bg-slate-400 rounded-full animate-pulse delay-150"></div>
+                      </div>
+                    </div>
                   </div>
                 )}
                 <div ref={messagesEndRef} />
@@ -425,25 +499,25 @@ const Index = () => {
             )}
           </ScrollArea>
 
-          {/* Input Area */}
+          {/* Modern Input Area */}
           {currentSession && (
-            <div className="border-t border-border p-4 bg-card">
+            <div className="border-t border-slate-200/50 dark:border-slate-700/50 p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
               {uploadedDocument && (
-                <div className="mb-3 p-2 bg-accent rounded-lg flex items-center gap-2">
-                  <FileText className="w-4 h-4" />
-                  <span className="text-sm">{uploadedDocument.name}</span>
+                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-3 border border-blue-200 dark:border-blue-800">
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span className="text-sm text-blue-800 dark:text-blue-200">{uploadedDocument.name}</span>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => setUploadedDocument(null)}
-                    className="ml-auto h-6 w-6 p-0"
+                    className="ml-auto h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
                   >
-                    ×
+                    <X className="w-3 h-3" />
                   </Button>
                 </div>
               )}
               
-              <div className="flex gap-2">
+              <div className="flex gap-3">
                 <input
                   ref={fileInputRef}
                   type="file"
@@ -457,23 +531,25 @@ const Index = () => {
                   size="sm"
                   onClick={() => fileInputRef.current?.click()}
                   disabled={isLoading}
+                  className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   <Upload className="w-4 h-4" />
                 </Button>
 
-                <div className="flex-1 flex gap-2">
+                <div className="flex-1 flex gap-3">
                   <Input
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     placeholder="Type your message..."
                     disabled={isLoading}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    className="flex-1"
+                    className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                   />
                   
                   <Button 
                     onClick={sendMessage} 
                     disabled={isLoading || !inputMessage.trim()}
+                    className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:shadow-none"
                   >
                     <Send className="w-4 h-4" />
                   </Button>
@@ -482,59 +558,6 @@ const Index = () => {
             </div>
           )}
         </div>
-
-        {/* System Prompt Modal */}
-        <Dialog open={isPromptModalOpen} onOpenChange={setIsPromptModalOpen}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle>Configure Your AI Assistant</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="system-prompt">System Prompt</Label>
-                <Textarea
-                  id="system-prompt"
-                  placeholder="Define how the AI should behave (e.g., 'You are a helpful coding assistant that provides clear, concise explanations...')"
-                  value={systemPrompt}
-                  onChange={(e) => setSystemPrompt(e.target.value)}
-                  rows={4}
-                  className="mt-1"
-                />
-              </div>
-              
-              <div>
-                <Label>AI Model</Label>
-                <div className="mt-2 grid grid-cols-2 gap-2">
-                  <Button
-                    variant={selectedModel === 'gemini' ? 'default' : 'outline'}
-                    onClick={() => setSelectedModel('gemini')}
-                    className="flex items-center gap-2"
-                  >
-                    <Sparkles className="w-4 h-4" />
-                    Gemini
-                  </Button>
-                  <Button
-                    variant={selectedModel === 'groq' ? 'default' : 'outline'}
-                    onClick={() => setSelectedModel('groq')}
-                    className="flex items-center gap-2"
-                  >
-                    <Bot className="w-4 h-4" />
-                    Groq
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={() => setIsPromptModalOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={createNewSession} disabled={!systemPrompt.trim()}>
-                  Start Chat
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
       </div>
     </div>
   );

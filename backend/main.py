@@ -1,4 +1,3 @@
-
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -15,15 +14,21 @@ from services.history_service import HistoryService
 from services.model_router import ModelRouter
 from services.prompt_service import PromptService
 
-app = FastAPI(title="Agentic Chatbot API", version="1.0.0")
+app = FastAPI(
+    title="Agentic Chatbot API", 
+    version="1.0.0",
+    docs_url="/docs" if settings.DEBUG else None,
+    redoc_url="/redoc" if settings.DEBUG else None
+)
 
-# Add CORS middleware for local development
+# Enhanced CORS middleware for production
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
+    expose_headers=["*"]
 )
 
 # Initialize services
@@ -199,4 +204,4 @@ async def validate_prompt(prompt: dict):
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host=settings.HOST, port=settings.PORT)
