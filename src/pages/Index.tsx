@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Upload, MessageSquare, Bot, User, FileText, Sparkles, Menu, X, Settings, Plus } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -250,56 +249,55 @@ const Index = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
-      <div className="flex w-full">
-        {/* Modern Sidebar */}
-        <div className={`${sidebarOpen ? 'w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50`}>
-          <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-                  <Bot className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Agentic Chat</h2>
-                  <p className="text-xs text-slate-500">AI Assistant</p>
-                </div>
+    <div className="min-h-screen flex flex-col md:flex-row bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+      {/* Sidebar */}
+      <div className={`${sidebarOpen ? 'w-full md:w-80' : 'w-0'} transition-all duration-300 overflow-hidden bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-r border-slate-200/50 dark:border-slate-700/50 flex flex-col h-64 md:h-screen flex-shrink-0`}>
+        {/* Sidebar Header and Model Selector (not scrollable) */}
+        <div className="p-6 border-b border-slate-200/50 dark:border-slate-700/50 flex-shrink-0">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                <Bot className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-200">Agentic Chat</h2>
+                <p className="text-xs text-slate-500">AI Assistant</p>
               </div>
             </div>
-            
-            <Button 
-              onClick={handleNewChat} 
-              className="w-full mb-6 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-200"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              New Chat
-            </Button>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
-              <Select value={selectedModel} onValueChange={setSelectedModel}>
-                <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gemini">
-                    <div className="flex items-center gap-2">
-                      <Sparkles className="w-4 h-4 text-amber-500" />
-                      Gemini Pro
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="groq">
-                    <div className="flex items-center gap-2">
-                      <Bot className="w-4 h-4 text-green-500" />
-                      Groq Mixtral
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
           </div>
-
-          <ScrollArea className="flex-1 p-4">
+          <Button 
+            onClick={handleNewChat} 
+            className="w-full mb-6 h-12 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 transition-all duration-200"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            New Chat
+          </Button>
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">AI Model</Label>
+            <Select value={selectedModel} onValueChange={setSelectedModel}>
+              <SelectTrigger className="h-11 rounded-xl border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="gemini">
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    Gemini Pro
+                  </div>
+                </SelectItem>
+                <SelectItem value="groq">
+                  <div className="flex items-center gap-2">
+                    <Bot className="w-4 h-4 text-green-500" />
+                    Groq Mixtral
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {/* Sidebar Chat List (scrollable) */}
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full p-4">
             <div className="space-y-3">
               {sessions.map((session) => (
                 <Card 
@@ -338,85 +336,86 @@ const Index = () => {
             </div>
           </ScrollArea>
         </div>
+      </div>
 
-        {/* Main Chat Area */}
-        <div className="flex-1 flex flex-col">
-          {/* Modern Header */}
-          <div className="border-b border-slate-200/50 dark:border-slate-700/50 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setSidebarOpen(!sidebarOpen)}
-                  className="rounded-xl h-10 w-10 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
-                >
-                  {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
-                </Button>
-                {currentSession && (
-                  <div>
-                    <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-200">{currentSession.title}</h1>
-                    <p className="text-sm text-slate-500">
-                      {currentSession.model.toUpperCase()} • {currentSession.messages.length} messages
-                    </p>
-                  </div>
-                )}
-              </div>
-              
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col h-[60vh] md:h-screen">
+        {/* Modern Header */}
+        <div className="border-b border-slate-200/50 dark:border-slate-700/50 p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex-shrink-0">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSidebarOpen(!sidebarOpen)}
+                className="rounded-xl h-10 w-10 p-0 hover:bg-slate-100 dark:hover:bg-slate-800"
+              >
+                {sidebarOpen ? <X className="w-4 h-4" /> : <Menu className="w-4 h-4" />}
+              </Button>
               {currentSession && (
-                <Badge 
-                  variant="outline" 
-                  className="flex items-center gap-2 px-3 py-1 rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
-                >
-                  {selectedModel === 'gemini' ? 
-                    <Sparkles className="w-3 h-3 text-amber-500" /> : 
-                    <Bot className="w-3 h-3 text-green-500" />
-                  }
-                  {selectedModel.toUpperCase()}
-                </Badge>
+                <div>
+                  <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-200">{currentSession.title}</h1>
+                  <p className="text-sm text-slate-500">
+                    {currentSession.model.toUpperCase()} • {currentSession.messages.length} messages
+                  </p>
+                </div>
               )}
             </div>
+            {currentSession && (
+              <Badge 
+                variant="outline" 
+                className="flex items-center gap-2 px-3 py-1 rounded-xl bg-white/50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-700"
+              >
+                {selectedModel === 'gemini' ? 
+                  <Sparkles className="w-3 h-3 text-amber-500" /> : 
+                  <Bot className="w-3 h-3 text-green-500" />
+                }
+                {selectedModel.toUpperCase()}
+              </Badge>
+            )}
           </div>
+        </div>
 
-          {/* System Prompt Input */}
-          {showSystemPrompt && (
-            <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-slate-200/50 dark:border-slate-700/50">
-              <div className="max-w-2xl mx-auto space-y-4">
-                <div className="text-center">
-                  <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">Configure Your AI Assistant</h3>
-                  <p className="text-slate-600 dark:text-slate-400 text-sm">Define how the AI should behave and respond</p>
-                </div>
-                <div className="space-y-3">
-                  <Textarea
-                    placeholder="You are a helpful assistant that provides clear, concise explanations..."
-                    value={systemPrompt}
-                    onChange={(e) => setSystemPrompt(e.target.value)}
-                    rows={3}
-                    className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
-                  />
-                  <div className="flex justify-center gap-3">
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setShowSystemPrompt(false)}
-                      className="rounded-xl"
-                    >
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={createNewSession} 
-                      disabled={!systemPrompt.trim()}
-                      className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
-                    >
-                      Start Chat
-                    </Button>
-                  </div>
+        {/* System Prompt Input */}
+        {showSystemPrompt && (
+          <div className="p-6 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 border-b border-slate-200/50 dark:border-slate-700/50 flex-shrink-0">
+            <div className="max-w-2xl mx-auto space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">Configure Your AI Assistant</h3>
+                <p className="text-slate-600 dark:text-slate-400 text-sm">Define how the AI should behave and respond</p>
+              </div>
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="You are a helpful assistant that provides clear, concise explanations..."
+                  value={systemPrompt}
+                  onChange={(e) => setSystemPrompt(e.target.value)}
+                  rows={3}
+                  className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 resize-none"
+                />
+                <div className="flex justify-center gap-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowSystemPrompt(false)}
+                    className="rounded-xl"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    onClick={createNewSession} 
+                    disabled={!systemPrompt.trim()}
+                    className="rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white"
+                  >
+                    Start Chat
+                  </Button>
                 </div>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Messages */}
-          <ScrollArea className="flex-1 p-6">
+        {/* Messages (scrollable) */}
+        <div className="flex-1 min-h-0">
+          <ScrollArea className="h-full p-6">
             {!currentSession ? (
               <div className="flex flex-col items-center justify-center h-full text-center">
                 <div className="w-24 h-24 rounded-3xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center mb-6 shadow-2xl shadow-blue-500/25">
@@ -448,7 +447,6 @@ const Index = () => {
                         <Bot className="w-5 h-5 text-white" />
                       </div>
                     )}
-                    
                     <div className={`max-w-[75%] ${message.type === 'user' ? 'order-first' : ''}`}>
                       <div className={`rounded-2xl p-4 shadow-sm backdrop-blur-sm ${
                         message.type === 'user' 
@@ -471,7 +469,6 @@ const Index = () => {
                         </div>
                       </div>
                     </div>
-
                     {message.type === 'user' && (
                       <div className="w-10 h-10 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center flex-shrink-0">
                         <User className="w-5 h-5 text-slate-600 dark:text-slate-300" />
@@ -479,7 +476,6 @@ const Index = () => {
                     )}
                   </div>
                 ))}
-                
                 {isLoading && (
                   <div className="flex gap-4 justify-start animate-fade-in">
                     <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0 shadow-lg">
@@ -498,66 +494,62 @@ const Index = () => {
               </div>
             )}
           </ScrollArea>
+        </div>
 
-          {/* Modern Input Area */}
-          {currentSession && (
-            <div className="border-t border-slate-200/50 dark:border-slate-700/50 p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl">
-              {uploadedDocument && (
-                <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-3 border border-blue-200 dark:border-blue-800">
-                  <FileText className="w-4 h-4 text-blue-600" />
-                  <span className="text-sm text-blue-800 dark:text-blue-200">{uploadedDocument.name}</span>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setUploadedDocument(null)}
-                    className="ml-auto h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
-                  >
-                    <X className="w-3 h-3" />
-                  </Button>
-                </div>
-              )}
-              
-              <div className="flex gap-3">
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept=".pdf,.txt,.docx"
-                  onChange={handleFileUpload}
-                  className="hidden"
-                />
-                
+        {/* Chat Input (fixed at bottom, not scrollable) */}
+        {currentSession && (
+          <div className="border-t border-slate-200/50 dark:border-slate-700/50 p-6 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl flex-shrink-0">
+            {uploadedDocument && (
+              <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl flex items-center gap-3 border border-blue-200 dark:border-blue-800">
+                <FileText className="w-4 h-4 text-blue-600" />
+                <span className="text-sm text-blue-800 dark:text-blue-200">{uploadedDocument.name}</span>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
-                  onClick={() => fileInputRef.current?.click()}
-                  disabled={isLoading}
-                  className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  onClick={() => setUploadedDocument(null)}
+                  className="ml-auto h-6 w-6 p-0 text-blue-600 hover:text-blue-800"
                 >
-                  <Upload className="w-4 h-4" />
+                  <X className="w-3 h-3" />
                 </Button>
-
-                <div className="flex-1 flex gap-3">
-                  <Input
-                    value={inputMessage}
-                    onChange={(e) => setInputMessage(e.target.value)}
-                    placeholder="Type your message..."
-                    disabled={isLoading}
-                    onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                    className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
-                  />
-                  
-                  <Button 
-                    onClick={sendMessage} 
-                    disabled={isLoading || !inputMessage.trim()}
-                    className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:shadow-none"
-                  >
-                    <Send className="w-4 h-4" />
-                  </Button>
-                </div>
+              </div>
+            )}
+            <div className="flex gap-3">
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.txt,.docx"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isLoading}
+                className="h-12 w-12 rounded-xl border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800"
+              >
+                <Upload className="w-4 h-4" />
+              </Button>
+              <div className="flex-1 flex gap-3">
+                <Input
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Type your message..."
+                  disabled={isLoading}
+                  onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  className="flex-1 h-12 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
+                />
+                <Button 
+                  onClick={sendMessage} 
+                  disabled={isLoading || !inputMessage.trim()}
+                  className="h-12 px-6 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white shadow-lg shadow-blue-500/25 disabled:opacity-50 disabled:shadow-none"
+                >
+                  <Send className="w-4 h-4" />
+                </Button>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
     </div>
   );
